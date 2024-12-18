@@ -90,13 +90,13 @@ impl Computer {
             .join(",")
     }
 
-    // fn reset(&mut self, a: u64) {
-    //     self.a = a;
-    //     self.b = 0;
-    //     self.c = 0;
-    //     self.insn_ptr = 0;
-    //     self.out.clear();
-    // }
+    fn reset(&mut self, a: u64) {
+        self.a = a;
+        self.b = 0;
+        self.c = 0;
+        self.insn_ptr = 0;
+        self.out.clear();
+    }
 
     // fn run_p2(&mut self, out_len: usize) -> Option<u64> {
     //     while self.insn_ptr < self.prog.len() {
@@ -125,6 +125,40 @@ pub fn part_one(input: &str) -> Option<String> {
     Some(comp.out_format())
 }
 
+fn calc_a(mut comp: Computer, target_prog: &[u64], prefix: u64) -> Option<u64> {
+    let mut search_space = HashSet::new();
+    for suffix_len in 1..=3u64 {
+        for suffix in 0..=((1 << suffix_len) - 1) {
+            let a = (prefix << suffix_len) | suffix;
+            comp.reset(a);
+            comp.run();
+            if comp.out == target_prog {
+                search_space.insert(a);
+            }
+        }
+    }
+    for candidate in search_space.into_iter().sorted() {
+        if target_prog.len() == comp.prog.len() {
+            return Some(candidate);
+        }
+        if let Some(a) = calc_a(
+            comp.clone(),
+            &comp.prog[comp.prog.len() - (target_prog.len() + 1)..],
+            candidate,
+        ) {
+            return Some(a);
+        }
+    }
+    None
+}
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let comp = Computer::parse_input(input);
+    calc_a(comp.clone(), &comp.prog[comp.prog.len() - 1..], 1)
+}
+
+// manually solved p2 below
+
 // Program: 0,3,5,4,3,0
 // a = a >> 3
 // out a
@@ -137,11 +171,11 @@ pub fn part_one(input: &str) -> Option<String> {
 // a = a >> 3
 // repeat if a != 0
 
-macro_rules! out {
-    ($a:expr) => {
-        (($a & 0b111) ^ 4 ^ ($a >> (($a & 0b111) ^ 1))) & 0b111
-    };
-}
+// macro_rules! out {
+//     ($a:expr) => {
+//         (($a & 0b111) ^ 4 ^ ($a >> (($a & 0b111) ^ 1))) & 0b111
+//     };
+// }
 
 // #[inline(always)]
 // fn is_prefix(a: u64, prefix: u64) -> bool {
@@ -150,135 +184,135 @@ macro_rules! out {
 //     a >> (a_bits - prefix_bits) == prefix
 // }
 
-pub fn part_two(input: &str) -> Option<u64> {
-    let prog: Vec<u64> = Computer::parse_input(input).prog;
+// pub fn part_two(input: &str) -> Option<u64> {
+//     let prog: Vec<u64> = Computer::parse_input(input).prog;
 
-    let len = 16;
-    let target = &prog[prog.len() - len..];
-    println!("t: {:?}", target);
+//     let len = 16;
+//     let target = &prog[prog.len() - len..];
+//     println!("t: {:?}", target);
 
-    let prefix = 20567627247063;
-    //  1: 4
-    //  2: 37
-    //  3: 299
-    //  4: 2394
-    //  5: 19155
-    //  6: 153240
-    //  7: 1225926
-    //  8: 9807408
-    //  9: 78459_271
-    // 10: 627674170x 627674171
-    // 11: 5021393370
-    // 12: 40171146966
-    // 13: 321369175735
-    // 14: 2570953405882
-    // 15: 20567627247056x 20567627247057x 20567627247058x 20567627247061x 20567627247063
+//     let prefix = 20567627247063;
+//     //  1: 4
+//     //  2: 37
+//     //  3: 299
+//     //  4: 2394
+//     //  5: 19155
+//     //  6: 153240
+//     //  7: 1225926
+//     //  8: 9807408
+//     //  9: 78459_271
+//     // 10: 627674170x 627674171
+//     // 11: 5021393370
+//     // 12: 40171146966
+//     // 13: 321369175735
+//     // 14: 2570953405882
+//     // 15: 20567627247056x 20567627247057x 20567627247058x 20567627247061x 20567627247063
 
-    let mut search_space = HashSet::new();
-    let mut p = Vec::with_capacity(len);
-    for suffix_len in 1..=16u64 {
-        // if !is_prefix(a, prefix) {
-        //     continue;
-        // }
+//     let mut search_space = HashSet::new();
+//     let mut p = Vec::with_capacity(len);
+//     for suffix_len in 1..=16u64 {
+//         // if !is_prefix(a, prefix) {
+//         //     continue;
+//         // }
 
-        // if i % 100_000_000 == 0 {
-        //     println!("{}", format!("{:b}", i));
-        // }
+//         // if i % 100_000_000 == 0 {
+//         //     println!("{}", format!("{:b}", i));
+//         // }
 
-        for suffix in 0..=((1 << suffix_len) - 1) {
-            // TODO: figure out how to keep suffix at suffix_len
-            let a = (prefix << suffix_len) | suffix;
-            let mut a_test = a;
+//         for suffix in 0..=((1 << suffix_len) - 1) {
+//             // TODO: figure out how to keep suffix at suffix_len
+//             let a = (prefix << suffix_len) | suffix;
+//             let mut a_test = a;
 
-            p.clear();
-            while a_test > 0 {
-                let out = out!(a_test);
-                p.push(out);
-                a_test >>= 3;
+//             p.clear();
+//             while a_test > 0 {
+//                 let out = out!(a_test);
+//                 p.push(out);
+//                 a_test >>= 3;
 
-                if !target.starts_with(&p) {
-                    break;
-                }
-                if p.len() >= len {
-                    break;
-                }
-            }
+//                 if !target.starts_with(&p) {
+//                     break;
+//                 }
+//                 if p.len() >= len {
+//                     break;
+//                 }
+//             }
 
-            if p == target {
-                // println!("a: {} - {}", a, format!("{:b}", a));
-                search_space.insert(a);
-            }
-        }
-    }
-    for (i, a) in search_space.into_iter().sorted().enumerate() {
-        println!("a: {a}");
-        if i > 3 {
-            break;
-        }
-    }
-    None
+//             if p == target {
+//                 // println!("a: {} - {}", a, format!("{:b}", a));
+//                 search_space.insert(a);
+//             }
+//         }
+//     }
+//     for (i, a) in search_space.into_iter().sorted().enumerate() {
+//         println!("a: {a}");
+//         if i > 3 {
+//             break;
+//         }
+//     }
+//     None
 
-    // let mut ss: HashMap<u64, Vec<u64>> = HashMap::new();
-    // for p in prog.into_iter() {
-    //     if ss.contains_key(&p) {
-    //         continue;
-    //     }
-    //     for a in 0..=0b111111111 {
-    //         let out = out!(a);
-    //         if out == p {
-    //             ss.entry(p).and_modify(|v| v.push(a)).or_insert(vec![a]);
-    //         }
-    //     }
-    // }
-    // for (k, v) in ss.iter() {
-    //     println!("{} {:?}", k, v.len());
-    // }
+//     // let mut ss: HashMap<u64, Vec<u64>> = HashMap::new();
+//     // for p in prog.into_iter() {
+//     //     if ss.contains_key(&p) {
+//     //         continue;
+//     //     }
+//     //     for a in 0..=0b111111111 {
+//     //         let out = out!(a);
+//     //         if out == p {
+//     //             ss.entry(p).and_modify(|v| v.push(a)).or_insert(vec![a]);
+//     //         }
+//     //     }
+//     // }
+//     // for (k, v) in ss.iter() {
+//     //     println!("{} {:?}", k, v.len());
+//     // }
 
-    // let mut comp = Computer::parse_input(input);
+//     // let mut comp = Computer::parse_input(input);
 
-    // let mut search_space: HashMap<u64, Vec<u64>> = HashMap::new();
-    // for out in comp.clone().prog.into_iter() {
-    //     if search_space.contains_key(&out) {
-    //         continue;
-    //     }
-    //     let mut bf: bool = true;
-    //     for a in 0..=0b111 {
-    //         comp.reset(a);
-    //         if matches!(comp.run_p2(1), Some(o) if o == out) {
-    //             search_space.entry(out).and_modify(|s| s.push(a)).or_insert(vec![a]);
-    //             bf = false;
-    //         }
-    //     }
-    //     // can't out `5` in 3 bits with my input, so instead brute force that mf
-    //     if bf {
-    //         for a in 0..=0b111 {
-    //             search_space.entry(out).and_modify(|s| s.push(a)).or_insert(vec![a]);
-    //         }
-    //     }
-    // }
-    // // for (k, v) in search_space.iter() {
-    // //     println!("{k}: {}", v.len());
-    // // }
+//     // let mut search_space: HashMap<u64, Vec<u64>> = HashMap::new();
+//     // for out in comp.clone().prog.into_iter() {
+//     //     if search_space.contains_key(&out) {
+//     //         continue;
+//     //     }
+//     //     let mut bf: bool = true;
+//     //     for a in 0..=0b111 {
+//     //         comp.reset(a);
+//     //         if matches!(comp.run_p2(1), Some(o) if o == out) {
+//     //             search_space.entry(out).and_modify(|s| s.push(a)).or_insert(vec![a]);
+//     //             bf = false;
+//     //         }
+//     //     }
+//     //     // can't out `5` in 3 bits with my input, so instead brute force that mf
+//     //     if bf {
+//     //         for a in 0..=0b111 {
+//     //             search_space.entry(out).and_modify(|s| s.push(a)).or_insert(vec![a]);
+//     //         }
+//     //     }
+//     // }
+//     // // for (k, v) in search_space.iter() {
+//     // //     println!("{k}: {}", v.len());
+//     // // }
 
-    // let entire_search_space: Vec<Vec<u64>> = comp.prog.iter().rev().map(|out| {
-    //     search_space.get(out).unwrap().clone()
-    // }).collect();
-    // // println!("{}", entire_search_space.iter().map(|s| s.len()).product::<usize>());
+//     // let entire_search_space: Vec<Vec<u64>> = comp.prog.iter().rev().map(|out| {
+//     //     search_space.get(out).unwrap().clone()
+//     // }).collect();
+//     // // println!("{}", entire_search_space.iter().map(|s| s.len()).product::<usize>());
 
-    // for (i, a) in entire_search_space.into_iter().multi_cartesian_product().map(|a| a.iter().fold(0, |acc, v| (acc << 3) | v)).enumerate() {
-    //     if i % 50_000_000 == 0 {
-    //         println!("{i} - {a}");
-    //     }
-    //     comp.reset(a);
-    //     if comp.run_test() {
-    //         return Some(a);
-    //     }
-    // }
+//     // for (i, a) in entire_search_space.into_iter().multi_cartesian_product().map(|a| a.iter().fold(0, |acc, v| (acc << 3) | v)).enumerate() {
+//     //     if i % 50_000_000 == 0 {
+//     //         println!("{i} - {a}");
+//     //     }
+//     //     comp.reset(a);
+//     //     if comp.run_test() {
+//     //         return Some(a);
+//     //     }
+//     // }
 
-    // comp.reset(78459271);
-    // comp.run();
-    // println!("{}", comp.out_format());
-}
+//     // comp.reset(78459271);
+//     // comp.run();
+//     // println!("{}", comp.out_format());
+// }
 
 #[cfg(test)]
 mod tests {
