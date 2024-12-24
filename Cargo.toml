@@ -30,3 +30,4 @@ tinyjson = "2.5.1"
 # Solution dependencies
 cached = "0.54.0"
 itertools = "0.13.0"
+petgraph = "0.6.5"
