@@ -2,7 +2,10 @@
 
 # 🎄 Advent of Code 2024
 
-Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.rust-lang.org/).
+Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.rust-lang.org/). No AI used :P
+
+![Times](./times.png)
+![Anniversary](./anniversary.png)
 
 <!--- advent_readme_stars table --->
 
